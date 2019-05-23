@@ -7,9 +7,12 @@ let shapes = [];
 let UIBlock;
 let numSlider;
 let showSliderNum;
-let colorPicker;
+let backColourPicker;
 let transparencySlider;
 let sizeSlider;
+let starColourPicker;
+
+let mic;
 
 // setup user interface
 function setupUI(){
@@ -37,10 +40,23 @@ function setupUI(){
 	colorSelection.style("margin-left", "30px");
 
 	createDiv("Background colour").parent(colorSelection);
-	colorPicker = createColorPicker("black");
-	colorPicker.parent(colorSelection);
-	colorPicker.style("display", "block");
-	colorPicker.style("margin", "0 auto");
+	backColourPicker = createColorPicker("black");
+	backColourPicker.parent(colorSelection);
+	backColourPicker.style("display", "block");
+	backColourPicker.style("margin", "0 auto");
+
+	// star colour picker changes the star colour
+	let starColour = createDiv();
+	starColour.parent(UIBlock);
+	starColour.style("display", "inline-block");
+	starColour.style("margin-left", "30px");
+
+	createDiv("Star colour").parent(starColour);
+	starColourPicker = createColorPicker("white");
+	starColourPicker.parent(starColour);
+	starColourPicker.style("display", "block");
+	starColourPicker.style("margin", "0 auto");
+
 
 	// transparency slider changes transparency of the rects
 	let transSelection = createDiv();
@@ -52,7 +68,7 @@ function setupUI(){
 	transDiv.parent(transSelection);
 	transDiv.style("margin-left", "20px");
 
-	transparencySlider = createSlider(0, 1, 0.8, 0.1);
+	transparencySlider = createSlider(0.5, 1, 0.8, 0.1);
 	transparencySlider.parent(transSelection);
 
 	showTransNum = createSpan(transparencySlider.value());
@@ -88,12 +104,33 @@ function setup() {
 	// set the onclick function to the canvas so it only works when click inside the panel
 	let canvas = document.getElementsByTagName("canvas")[0];
 	canvas.onclick = function(){createShapes(mouseX, mouseY);}
+
+	// setup microphone
+	mic = new p5.AudioIn();
+	// Turns on the mic
+  mic.start();
 }
 
+// this function fixed a bug where the audio won't start in chrome
+function touchStarted(){
+	getAudioContext().resume();
+}
+
+
 function draw() {
-	background(colorPicker.color());
+
+	background(backColourPicker.color());
+
+	let starNum = mic.getLevel()*1000;
+	
+	for(let i=0; i<starNum; i++){
+		noStroke();
+		fill(starColourPicker.color());
+		circle(random(windowSize[0]), random(windowSize[1]), 3);
+	}
+
 	let i = 0;
-    while(i<shapes.length){
+  while(i<shapes.length){
 		if(!shapes[i].checkExpire()){
 			shapes[i].render();
 			i++;
@@ -113,7 +150,7 @@ function draw() {
 // draw triangles 
 
 function drawTriangle(w){
-	triangle(0, 0, -w/2, w, w/2, w)
+	triangle(0, -w/2, -w/3, w/4, w/3, w/4);
 }
 
 
@@ -129,14 +166,14 @@ function particle(x, y, rotation, fillColor, storkeColor, shape){
 	this.shape = shape;
 	switch(shape){
 		case "rectangle":
-			this.w = random(sizeSlider.value()-90, sizeSlider.value());
+			this.w = random(20, sizeSlider.value());
 			this.hRatio = random(1, 4); 
 			break;
 		case "triangle":
-			this.w = random(sizeSlider.value()-90, sizeSlider.value());
+			this.w = random(20, sizeSlider.value());
 			break;
 		case "circle":
-			this.w = random(sizeSlider.value()-90, sizeSlider.value());
+			this.w = random(20, sizeSlider.value());
 			break;
 		default:
 			break;
@@ -155,10 +192,20 @@ function particle(x, y, rotation, fillColor, storkeColor, shape){
 	// the time that the shape is created
 	this.startTime = new Date();
 
+	// whether the shape is going to be destroyed
+	this.destroy = false;
+	this.startDestroyTime = undefined;
+
 	// checks if the shape expires and needs to be removed
 	this.checkExpire = function(){
 		// expires after 4 seconds
-		return new Date() - this.startTime>3500;
+		return new Date() - this.startTime > 1500;
+	}
+
+	this.startDestroy = function(){
+		if(this.destroy)return;
+		this.startDestroyTime = new Date();
+		this.destroy = true;
 	}
 
 	this.render = function(){
@@ -179,13 +226,13 @@ function particle(x, y, rotation, fillColor, storkeColor, shape){
 		}
 
 		// do a leave animate, leave animate lasts for 0.5 seconds
-		if(existTime>3000){
+		if(existTime>1000){
 			if(this.clockWise){
-				tempRotation = this.rotation - 90*(existTime-3000)/500
+				tempRotation = this.rotation - 90*(existTime-1000)/500
 			}else{
-				tempRotation = this.rotation + 90*(existTime-3000)/500
+				tempRotation = this.rotation + 90*(existTime-1000)/500
 			}
-			tempW = this.w * (1-(existTime-3000)/500);
+			tempW = this.w * (1-(existTime-1000)/500);
 		}
 
 		push();
