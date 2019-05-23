@@ -12,11 +12,17 @@ let backColourPicker;
 let transparencySlider;
 let sizeSlider;
 let starColourPicker;
+// check boxes
+let rectCheck;
+let triangleCheck;
+let circleCheck;
 
 let mic;
 
 // setup user interface
 function setupUI(){
+	document.getElementsByTagName("body")[0].setAttribute("style", "min-width:1600px");
+
 	UIBlock = createDiv();
 	UIBlock.style("display", "block");
 	UIBlock.style("margin", "15px 0 20px");
@@ -92,6 +98,27 @@ function setupUI(){
 	showSizeNum = createSpan(sizeSlider.value());
 	showSizeNum.parent(sizeBlock);
 	showSizeNum.style("margin-left", "5px");
+
+	// checkboxes 
+	let checkBlock = createDiv();
+	checkBlock.parent(UIBlock);
+	checkBlock.style("display", "inline-block");
+	checkBlock.style("margin-left", "100px");
+	checkBlock.style("vertical-align", "top");
+
+	createDiv("Select shapes to be generated").parent(checkBlock);
+	rectCheck = createCheckbox("rectangle", true);
+	rectCheck.parent(checkBlock);
+	triangleCheck = createCheckbox("triangle", false);
+	triangleCheck.parent(checkBlock);
+	circleCheck = createCheckbox("circle", false);
+	circleCheck.parent(checkBlock);
+
+	// display message
+	let message = createDiv("Make noise to get more stars!");
+	message.style("float", "right");
+	message.style("margin", "300px 300px 0 0");
+	message.style("font-size", "20px");
 }
 
 
@@ -317,7 +344,16 @@ function createShapes(x, y){
 	let mainColor = parseInt(random(360));
 	let rotation = random(90);
 	let strokeColor = color(`hsb(${mainColor}, 50%, 100%)`);
-	let shape = random(["rectangle", "triangle", "circle"]);
+	
+	let checkedShapes = [];
+	if(triangleCheck.checked())checkedShapes.push("triangle");
+	if(rectCheck.checked())checkedShapes.push("rectangle");
+	if(circleCheck.checked())checkedShapes.push("circle");
+	let shape = random(checkedShapes);
+	if(checkedShapes.length == 0){
+		alert("must select at least one shape!");
+		return;
+	}
 	for(let i=0; i<numSlider.value(); i++){
 		// create square group
 		let fillColor = color(`hsba(${mainColor}, 100%, ${100-i*5}%, ${1-transparencySlider.value()})`);
