@@ -3,6 +3,7 @@
 
 let windowSize = [900, 700];
 let shapes = [];
+let stars = [];
 
 let UIBlock;
 let numSlider;
@@ -121,15 +122,25 @@ function draw() {
 
 	background(backColourPicker.color());
 
-	let starNum = mic.getLevel()*1000;
+	let starNum = mic.getLevel()*50;
 	
 	for(let i=0; i<starNum; i++){
-		noStroke();
-		fill(starColourPicker.color());
-		circle(random(windowSize[0]), random(windowSize[1]), 3);
+		stars.push(new star(random(windowSize[0]), random(windowSize[1])));
 	}
 
 	let i = 0;
+  while(i<stars.length){
+		if(!stars[i].checkExpire()){
+			stars[i].render();
+			i++;
+		}
+		// if a square expires, delete it from array
+		else{
+			stars.splice(i, 1);
+		}
+	}
+
+	i = 0;
   while(i<shapes.length){
 		if(!shapes[i].checkExpire()){
 			shapes[i].render();
@@ -151,6 +162,44 @@ function draw() {
 
 function drawTriangle(w){
 	triangle(0, -w/2, -w/3, w/4, w/3, w/4);
+}
+
+
+// star function
+
+function star(x, y){
+	// positions of the star
+	this.x = x;
+	this.y = y;
+	// colour of the star
+	this.fillColor = starColourPicker.color();
+	// size of the star
+	this.size = random(1, 3);
+	// start time of the star
+	this.startTime = new Date();
+
+	this.checkExpire = function(){
+		// expires after 4 seconds
+		return new Date() - this.startTime > 1000;
+	}
+
+	this.render = function(){
+		// the time count after the shape is created
+		let existTime = new Date() - this.startTime;
+
+		let tempW = this.size;
+		// do a enter animate
+		if(existTime<300){
+			tempW = this.size * (1-(1-existTime/300));
+		}
+
+		// do a leave animate, leave animate lasts for 0.5 seconds
+		if(existTime>700){
+			tempW = this.size * (1-(existTime-700)/300);
+		}
+
+		circle(this.x, this.y, tempW);
+	}
 }
 
 
