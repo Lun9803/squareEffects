@@ -156,7 +156,7 @@ function draw() {
 	}
 
 	let i = 0;
-  while(i<stars.length){
+  	while(i<stars.length){
 		if(!stars[i].checkExpire()){
 			stars[i].render();
 			i++;
@@ -168,7 +168,7 @@ function draw() {
 	}
 
 	i = 0;
-  while(i<shapes.length){
+  	while(i<shapes.length){
 		if(!shapes[i].checkExpire()){
 			shapes[i].render();
 			i++;
@@ -224,7 +224,8 @@ function star(x, y){
 		if(existTime>700){
 			tempW = this.size * (1-(existTime-700)/300);
 		}
-
+		noStroke();
+		fill(this.fillColor);
 		circle(this.x, this.y, tempW);
 	}
 }
